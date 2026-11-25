@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas metas | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro goals-intro">
+    <p class="eyebrow">SUA EVOLUCAO</p>
+    <h1>Metas pessoais</h1>
+    <p>Defina objetivos para sua jornada e acompanhe o que ainda falta conquistar.</p>
+  </section>
+
+  <div class="goals-actions">
+    <a class="button" href="{{ url_for('goals.create_goal') }}">Criar meta</a>
+  </div>
+
+  <section class="goals-summary" aria-label="Resumo das metas">
+    <div><strong>{{ summary.total }}</strong><span>Total</span></div>
+    <div><strong>{{ summary.in_progress }}</strong><span>Em andamento</span></div>
+    <div><strong>{{ summary.completed }}</strong><span>Concluidas</span></div>
+  </section>
+
+  <ul class="goals-grid">
+    {% for goal in goals %}
+      <li class="goal-card">
+        <div class="goal-card-heading">
+          <span class="goal-status status-{{ goal.status }}">
+            {% if goal.status == "completed" %}Concluida{% else %}Em andamento{% endif %}
+          </span>
+        </div>
+        <strong class="goal-title">{{ goal.objective }}</strong>
+        {% set games = goal_games[goal.id] %}
+        {% if games %}
+          <div class="goal-games">
+            {% for game in games %}
+              <p class="goal-game">
+                Jogo: {{ game.game_name or ("AppID " ~ game.steam_app_id) }}
+              </p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if goal.due_date %}
+          <p class="goal-due-date">Prazo: {{ goal.due_date }}</p>
+        {% else %}
+          <p class="goal-due-date">Sem prazo definido</p>
+        {% endif %}
+        <div class="goal-card-actions">
+          <a class="button button-small" href="{{ url_for('goals.edit_goal', goal_id=goal.id) }}">Editar</a>
+          <a class="goal-delete-link" href="{{ url_for('goals.delete_goal', goal_id=goal.id) }}">Excluir</a>
+        </div>
+      </li>
+    {% else %}
+      <li class="goals-empty">
+        <strong>Sua primeira meta começa aqui</strong>
+        <p>Defina um objetivo pessoal e acompanhe seu progresso manualmente.</p>
+        <a class="button button-small" href="{{ url_for('goals.create_goal') }}">Criar primeira meta</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <p class="goals-back"><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+{% endblock %}

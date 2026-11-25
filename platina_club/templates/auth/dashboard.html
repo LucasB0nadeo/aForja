@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Meu painel | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro">
+    <p class="eyebrow">PAINEL DO JOGADOR</p>
+    <h1>Bem-vindo à sua Forja</h1>
+    <p>Seu próximo marco começa com um jogo. Escolha por onde continuar sua jornada.</p>
+  </section>
+
+  <div class="dashboard-grid">
+    <a class="dashboard-card" href="{{ url_for('library.list_games') }}">
+      <span class="card-icon" aria-hidden="true">01</span>
+      <strong>Minha biblioteca</strong>
+      <small>Organize jogos e acompanhe suas conquistas.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('collections.list_collections') }}">
+      <span class="card-icon" aria-hidden="true">02</span>
+      <strong>Coleções</strong>
+      <small>Separe seus jogos do seu jeito.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('reviews.list_reviews') }}">
+      <span class="card-icon" aria-hidden="true">03</span>
+      <strong>Avaliações</strong>
+      <small>Guarde sua opinião sobre cada jornada.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('wishlist.list_entries') }}">
+      <span class="card-icon" aria-hidden="true">04</span>
+      <strong>Lista de desejos</strong>
+      <small>Planeje quais serão suas próximas aventuras.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('goals.list_goals') }}">
+      <span class="card-icon" aria-hidden="true">05</span>
+      <strong>Metas pessoais</strong>
+      <small>Defina objetivos e acompanhe sua evolução.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('profiles.edit_profile') }}">
+      <span class="card-icon" aria-hidden="true">06</span>
+      <strong>Perfil do jogador</strong>
+      <small>Personalize sua apresentação na comunidade.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('profiles.edit_forja') }}">
+      <span class="card-icon" aria-hidden="true">07</span>
+      <strong>Minha Forja</strong>
+      <small>Escolha as Brasas que representam sua jornada.</small>
+    </a>
+    <a class="dashboard-card" href="{{ url_for('profiles.public_profile', user_id=user.id) }}">
+      <span class="card-icon" aria-hidden="true">08</span>
+      <strong>Ver perfil público</strong>
+      <small>Veja como sua história aparece para outras pessoas.</small>
+    </a>
+  </div>
+
+  <section class="steam-panel">
+    <p class="eyebrow">CONEXÃO DE CONTA</p>
+    <h2>Steam</h2>
+    {% if steam_link %}
+      <p>Sua conta Steam está vinculada. Sincronize sua biblioteca pela página de jogos.</p>
+      <form method="post" action="{{ url_for('steam.unlink') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Desvincular Steam</button>
+      </form>
+    {% else %}
+      <p>Vincule sua conta para importar jogos e acompanhar conquistas oficiais.</p>
+      <a class="button" href="{{ url_for('steam.link') }}">Vincular com Steam</a>
+    {% endif %}
+  </section>
+
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">Sair da conta</button>
+  </form>
+
+  <section class="account-danger-zone">
+    <p class="eyebrow">ZONA DE RISCO</p>
+    <h2>Excluir conta</h2>
+    <p>Esta ação remove permanentemente sua conta, perfil e dados associados.</p>
+    <a class="button button-danger" href="{{ url_for('auth.delete_account') }}">Excluir minha conta</a>
+  </section>
+{% endblock %}

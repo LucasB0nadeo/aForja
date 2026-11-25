@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Amigos | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro profile-intro">
+    <p class="eyebrow">SUA COMUNIDADE</p>
+    <h1>Amigos</h1>
+    <p>Acompanhe seus amigos e encontre outros jogadores para adicionar à sua jornada.</p>
+  </section>
+
+  <section class="friends-page">
+    <details class="friend-search" {% if search_query %}open{% endif %}>
+      <summary class="friend-search-trigger">
+        <img src="{{ url_for('static', filename='gold_hammer.png') }}" alt="">
+        <span aria-hidden="true">+</span>
+        <strong>Adicionar amigo</strong>
+      </summary>
+      <form class="friend-search-form" method="get" action="{{ url_for('profiles.friends_page') }}">
+        <label for="friend-search-query">Nome do jogador</label>
+        <div>
+          <input
+            id="friend-search-query"
+            type="search"
+            name="q"
+            value="{{ search_query }}"
+            maxlength="40"
+            required
+            autocomplete="off"
+            placeholder="Digite o nome de exibição"
+          >
+          <button type="submit">Buscar</button>
+        </div>
+      </form>
+
+      {% if search_query %}
+        <div class="friend-search-results" aria-live="polite">
+          <h2>Resultados da busca</h2>
+          {% for result in search_results %}
+            <div class="friend-result">
+              <a href="{{ url_for('profiles.public_profile', user_id=result.user_id) }}">{{ result.display_name }}</a>
+              <div class="friend-result-actions">
+                {% if result.friendship_status == "none" %}
+                  <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=result.user_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="friends">
+                    <button type="submit" name="action" value="request">Adicionar amigo</button>
+                  </form>
+                {% elif result.friendship_status == "pending_sent" %}
+                  <span>Pedido enviado</span>
+                  <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=result.user_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="friends">
+                    <button type="submit" name="action" value="cancel">Cancelar pedido</button>
+                  </form>
+                {% elif result.friendship_status == "pending_received" %}
+                  <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=result.user_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="friends">
+                    <button type="submit" name="action" value="accept">Aceitar</button>
+                    <button type="submit" name="action" value="decline">Recusar</button>
+                  </form>
+                {% else %}
+                  <span>Vocês são amigos</span>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <p>Nenhum jogador encontrado com esse nome.</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </details>
+
+    {% if incoming_friend_requests %}
+      <section class="incoming-friend-requests" aria-labelledby="friend-requests-heading">
+        <h2 id="friend-requests-heading">Pedidos recebidos</h2>
+        {% for friend_request in incoming_friend_requests %}
+          <div class="friend-result">
+            <a href="{{ url_for('profiles.public_profile', user_id=friend_request.user_id) }}">{{ friend_request.display_name }}</a>
+            <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=friend_request.user_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="friends">
+              <button type="submit" name="action" value="accept">Aceitar</button>
+              <button type="submit" name="action" value="decline">Recusar</button>
+            </form>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    <section class="incoming-friend-requests" aria-labelledby="friends-heading">
+      <h2 id="friends-heading">Sua lista de amigos</h2>
+      {% for friend in friends %}
+        <div class="friend-result">
+          <a href="{{ url_for('profiles.public_profile', user_id=friend.user_id) }}">{{ friend.display_name }}</a>
+          <a class="button button-small" href="{{ url_for('profiles.public_profile', user_id=friend.user_id) }}">Ver perfil</a>
+        </div>
+      {% else %}
+        <p>Você ainda não tem amigos. Use o botão acima para encontrar jogadores.</p>
+      {% endfor %}
+    </section>
+  </section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir coleção | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Excluir coleção</h1>
+  <p>Tem certeza de que deseja excluir “{{ collection.name }}”? Os jogos permanecerão na biblioteca.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="delete">
+    <button type="submit">Confirmar exclusão</button>
+  </form>
+  <p><a href="{{ url_for('collections.list_collections') }}">Cancelar</a></p>
+{% endblock %}

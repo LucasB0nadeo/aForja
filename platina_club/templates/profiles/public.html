@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.display_name }} | FORJA{% endblock %}
+
+{% block content %}
+  <section class="public-profile-header">
+    <img
+      src="{{ profile.avatar_display_url }}"
+      alt="Foto de perfil de {{ profile.display_name }}"
+      width="160"
+      height="160"
+    >
+    <div class="public-profile-info">
+      <div>
+        <p class="eyebrow">PERFIL DO JOGADOR</p>
+        <h1>{{ profile.display_name }}</h1>
+        {% if profile.bio %}
+          <p class="public-profile-bio">{{ profile.bio }}</p>
+        {% else %}
+          <p class="public-profile-bio">Este jogador ainda não escreveu uma bio.</p>
+        {% endif %}
+      </div>
+      <section class="profile-share" aria-label="Compartilhar perfil">
+        <button type="button" class="profile-share-button" data-copy-profile-link aria-label="Copiar link do perfil" title="Copiar link do perfil">
+          <span aria-hidden="true">↗</span> Copiar link
+        </button>
+        <div class="profile-share-fallback" hidden>
+          <label for="profile-share-link">Link do perfil</label>
+          <input id="profile-share-link" type="text" value="{{ url_for('profiles.public_profile', user_id=profile.user_id) }}" readonly>
+        </div>
+        <p data-copy-profile-feedback role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </section>
+
+  <section class="profile-stats" aria-label="Estatísticas públicas">
+    <div><strong>{{ stats.games }}</strong><span>Jogos</span></div>
+    <div><strong>{{ stats.achievements }}</strong><span>Conquistas</span></div>
+    <div><strong>{{ stats.embers }}</strong><span>Brasas</span></div>
+  </section>
+
+  <section class="ranking-position-summary" aria-label="Ranking mundial de conquistas">
+    <article class="ranking-position-card">
+      <span class="ranking-position-label">Melhor posição</span>
+      {% if profile.privacy != "all" %}
+        <strong>—</strong>
+        <small>Perfil fora do ranking público</small>
+      {% elif not profile.show_ranking_position %}
+        <strong>—</strong>
+        <small>Posição privada pelo jogador</small>
+      {% elif achievement_ranking_positions %}
+        <strong>#{{ achievement_ranking_positions.best }}</strong>
+        <small>Recorde no ranking mundial de conquistas</small>
+      {% else %}
+        <strong>—</strong>
+        <small>Desbloqueie sua primeira conquista</small>
+      {% endif %}
+    </article>
+    <article class="ranking-position-card">
+      <span class="ranking-position-label">Posição atual</span>
+      {% if profile.privacy != "all" %}
+        <strong>—</strong>
+        <small>Perfil fora do ranking público</small>
+      {% elif not profile.show_ranking_position %}
+        <strong>—</strong>
+        <small>Posição privada pelo jogador</small>
+      {% elif achievement_ranking_positions %}
+        <strong>#{{ achievement_ranking_positions.current }}</strong>
+        <small>Entre {{ achievement_ranking_positions.total_players }} jogadores</small>
+      {% else %}
+        <strong>—</strong>
+        <small>Desbloqueie sua primeira conquista</small>
+      {% endif %}
+    </article>
+  </section>
+
+  {% if profile.user_id != g.user.id %}
+    <section class="profile-friendship" aria-label="Amizade">
+      {% if friendship_status == "friends" %}
+        <p>Vocês são amigos.</p>
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="remove">Remover amizade</button>
+        </form>
+      {% elif friendship_status == "pending_sent" %}
+        <p>Pedido de amizade enviado.</p>
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="cancel">Cancelar pedido</button>
+        </form>
+      {% elif friendship_status == "pending_received" %}
+        <p>Este jogador enviou um pedido de amizade.</p>
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="accept">Aceitar</button>
+          <button type="submit" name="action" value="decline">Recusar</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="request">Adicionar amigo</button>
+        </form>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <section class="public-forja" aria-labelledby="public-forja-heading">
+    <h2 id="public-forja-heading">Minha Forja</h2>
+    <div class="ranking-position-summary" aria-label="Posições no ranking mundial de Brasas">
+      <article class="ranking-position-card">
+        <span class="ranking-position-label">Melhor posição</span>
+        {% if profile.privacy != "all" %}
+          <strong>—</strong>
+          <small>Perfil fora do ranking público</small>
+        {% elif not profile.show_ranking_position %}
+          <strong>—</strong>
+          <small>Posição privada pelo jogador</small>
+        {% elif ranking_positions %}
+          <strong>#{{ ranking_positions.best }}</strong>
+          <small>Recorde no ranking mundial de Brasas</small>
+        {% else %}
+          <strong>—</strong>
+          <small>Conquiste sua primeira Brasa</small>
+        {% endif %}
+      </article>
+      <article class="ranking-position-card">
+        <span class="ranking-position-label">Posição atual</span>
+        {% if profile.privacy != "all" %}
+          <strong>—</strong>
+          <small>Perfil fora do ranking público</small>
+        {% elif not profile.show_ranking_position %}
+          <strong>—</strong>
+          <small>Posição privada pelo jogador</small>
+        {% elif ranking_positions %}
+          <strong>#{{ ranking_positions.current }}</strong>
+          <small>Entre {{ ranking_positions.total_players }} jogadores</small>
+        {% else %}
+          <strong>—</strong>
+          <small>Conquiste sua primeira Brasa</small>
+        {% endif %}
+      </article>
+    </div>
+    <div class="ember-display-grid">
+      {% for ember in forja %}
+        <div class="ember-display-slot">
+          <span class="ember-slot-number">{{ ember.slot }}</span>
+          <img src="{{ url_for('static', filename='ember.png') }}" alt="">
+          <strong>Brasa do Ferreiro — {{ ember.game_name_snapshot }}</strong>
+          <small>AppID {{ ember.steam_app_id }}</small>
+        </div>
+      {% endfor %}
+      {% if forja|length == 0 %}
+        <p class="public-forja-empty">Nenhuma Brasa em destaque.</p>
+      {% endif %}
+      {% for slot in range(forja|length + 1, 10) %}
+        <div class="ember-display-slot ember-display-slot-empty" aria-hidden="true">
+          <span class="ember-slot-number">{{ slot }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% if profile.user_id == g.user.id %}
+    {% if incoming_friend_requests %}
+      <section class="incoming-friend-requests" aria-labelledby="incoming-friend-requests-heading">
+        <h2 id="incoming-friend-requests-heading">Pedidos de amizade</h2>
+        {% for friend_request in incoming_friend_requests %}
+          <div class="incoming-friend-request">
+            <a href="{{ url_for('profiles.public_profile', user_id=friend_request.user_id) }}">{{ friend_request.display_name }}</a>
+            <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=friend_request.user_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" name="action" value="accept">Aceitar</button>
+              <button type="submit" name="action" value="decline">Recusar</button>
+            </form>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+    {% if friends %}
+      <section class="incoming-friend-requests" aria-labelledby="friends-heading">
+        <h2 id="friends-heading">Amigos</h2>
+        {% for friend in friends %}
+          <div class="incoming-friend-request">
+            <a href="{{ url_for('profiles.public_profile', user_id=friend.user_id) }}">{{ friend.display_name }}</a>
+            <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=friend.user_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" name="action" value="remove">Remover amizade</button>
+            </form>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+    <p><a href="{{ url_for('profiles.edit_profile') }}">Editar perfil</a></p>
+    <p><a href="{{ url_for('profiles.edit_forja') }}">Gerenciar Forja</a></p>
+  {% endif %}
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+  <script>
+    (() => {
+      const linkInput = document.querySelector("#profile-share-link");
+      const copyButton = document.querySelector("[data-copy-profile-link]");
+      const feedback = document.querySelector("[data-copy-profile-feedback]");
+      if (!linkInput || !copyButton || !feedback) return;
+
+      linkInput.value = new URL(linkInput.value, window.location.origin).href;
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(linkInput.value);
+          feedback.textContent = "Link copiado.";
+        } catch {
+          linkInput.closest(".profile-share-fallback").hidden = false;
+          linkInput.focus();
+          linkInput.select();
+          feedback.textContent = "Não foi possível copiar automaticamente. Copie o link selecionado.";
+        }
+      });
+    })();
+  </script>
+{% endblock %}

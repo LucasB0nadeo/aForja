@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas coleções | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Minhas coleções</h1>
+  <p><a href="{{ url_for('collections.create_collection') }}">Criar coleção</a></p>
+  <ul>
+    {% for collection in collections %}
+      <li>
+        <a href="{{ url_for('collections.edit_collection', collection_id=collection.id) }}">
+          <strong>{{ collection.name }}</strong>
+        </a>
+        <p>{{ collection.description }}</p>
+        <p>{{ collection.game_count }} jogo(s)</p>
+        <a href="{{ url_for('collections.delete_collection', collection_id=collection.id) }}">Excluir</a>
+      </li>
+    {% else %}
+      <li>Você ainda não criou coleções.</li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+{% endblock %}

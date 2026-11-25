@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil privado | FORJA{% endblock %}
+
+{% block content %}
+  <section class="private-profile">
+    <p class="eyebrow">PERFIL DO JOGADOR</p>
+    <h1>Perfil privado</h1>
+    {% if profile.privacy == "friends" %}
+      <p>Este perfil está disponível apenas para amigos.</p>
+      {% if friendship_status == "pending_sent" %}
+        <p>Seu pedido de amizade foi enviado.</p>
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="cancel">Cancelar pedido</button>
+        </form>
+      {% elif friendship_status == "pending_received" %}
+        <p>Este jogador enviou um pedido de amizade.</p>
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="accept">Aceitar</button>
+          <button type="submit" name="action" value="decline">Recusar</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('profiles.manage_friendship', user_id=profile.user_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="action" value="request">Enviar pedido de amizade</button>
+        </form>
+      {% endif %}
+    {% else %}
+      <p>Este perfil está visível somente para o próprio jogador.</p>
+    {% endif %}
+  </section>
+  <p><a href="{{ url_for('profiles.public_profile', user_id=g.user.id) }}">Voltar ao meu perfil</a></p>
+{% endblock %}

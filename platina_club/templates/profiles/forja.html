@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Minha Forja | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro profile-intro">
+    <p class="eyebrow">COMPOSICAO DA FORJA</p>
+    <h1>Minha Forja</h1>
+    <p>Organize até nove Brasas do Ferreiro em posições específicas do seu perfil.</p>
+  </section>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  <form class="forja-editor" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="forja-editor-layout">
+      <section class="forja-grid-section" aria-labelledby="forja-grid-heading">
+        <h2 id="forja-grid-heading">Sua composição</h2>
+        <p>Clique em uma Brasa disponível para preencher o primeiro slot vazio.</p>
+        <div class="ember-editor-grid">
+          {% for slot in range(1, 10) %}
+            {% set award_id = ember_slots.get(slot) %}
+            {% set award = none %}
+            {% for ember in earned_embers %}
+              {% if ember.id == award_id %}
+                {% set award = ember %}
+              {% endif %}
+            {% endfor %}
+            <div
+              class="ember-editor-slot {% if award %}is-filled{% endif %}"
+              data-forja-slot="{{ slot }}"
+              {% if award %}
+                draggable="true"
+                data-award-id="{{ award.id }}"
+              {% endif %}
+            >
+              <span class="ember-slot-number">{{ slot }}</span>
+              {% if award %}
+                <img src="{{ url_for('static', filename='ember.png') }}" alt="">
+                <strong>{{ award.game_name_snapshot }}</strong>
+                <small>AppID {{ award.steam_app_id }}</small>
+                <button type="button" class="ember-remove-button" data-remove-award="{{ award.id }}" aria-label="Remover {{ award.game_name_snapshot }}">×</button>
+              {% else %}
+                <span class="ember-slot-empty">Vazio</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <div data-forja-hidden-inputs>
+          {% for slot in range(1, 10) %}
+            {% set award_id = ember_slots.get(slot) %}
+            {% if award_id %}
+              <input type="hidden" name="badge_award_ids" value="{{ award_id }}">
+            {% endif %}
+          {% endfor %}
+        </div>
+        <button type="submit">Salvar Forja</button>
+      </section>
+
+      <section class="ember-library" aria-labelledby="ember-library-heading">
+        <h2 id="ember-library-heading">Brasas conquistadas</h2>
+        {% for ember in earned_embers %}
+          <button
+            type="button"
+            class="ember-library-card {% if ember.id in selected_ids %}is-selected{% endif %}"
+            data-award-id="{{ ember.id }}"
+            data-game-name="{{ ember.game_name_snapshot }}"
+            data-app-id="{{ ember.steam_app_id }}"
+            draggable="true"
+          >
+            <img src="{{ url_for('static', filename='ember.png') }}" alt="">
+            <span>
+              <strong>{{ ember.game_name_snapshot }}</strong>
+              <small>AppID {{ ember.steam_app_id }}</small>
+            </span>
+          </button>
+        {% else %}
+          <p class="ember-library-empty">Você ainda não conquistou Brasas do Ferreiro.</p>
+        {% endfor %}
+      </section>
+    </div>
+  </form>
+  <p><a href="{{ url_for('profiles.public_profile', user_id=g.user.id) }}">Ver perfil</a></p>
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+  <script>
+    (() => {
+      const grid = document.querySelector(".ember-editor-grid");
+      const library = document.querySelector(".ember-library");
+      const hiddenInputs = document.querySelector("[data-forja-hidden-inputs]");
+
+      if (!grid || !library || !hiddenInputs) {
+        return;
+      }
+
+      const slots = () => Array.from(grid.querySelectorAll("[data-forja-slot]"));
+
+      function awardIdAtSlot(slot) {
+        return slot.dataset.awardId || null;
+      }
+
+      function firstEmptySlot() {
+        return slots().find((slot) => !awardIdAtSlot(slot));
+      }
+
+      function rebuild() {
+        hiddenInputs.replaceChildren();
+        slots().forEach((slot) => {
+          const awardId = awardIdAtSlot(slot);
+          if (awardId) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "badge_award_ids";
+            input.value = awardId;
+            hiddenInputs.append(input);
+          }
+        });
+        library.querySelectorAll("[data-award-id]").forEach((card) => {
+          const selected = slots().some((slot) => slot.dataset.awardId === card.dataset.awardId);
+          card.classList.toggle("is-selected", selected);
+        });
+      }
+
+      function clearSlot(slot) {
+        delete slot.dataset.awardId;
+        slot.classList.remove("is-filled");
+        slot.draggable = false;
+        slot.innerHTML = `<span class="ember-slot-number">${slot.dataset.forjaSlot}</span><span class="ember-slot-empty">Vazio</span>`;
+        rebuild();
+      }
+
+      function setSlot(slot, sourceCard, awardId) {
+        const name = sourceCard?.dataset.gameName || slot.querySelector("strong")?.textContent || "";
+        const appId = sourceCard?.dataset.appId || "";
+        slot.dataset.awardId = awardId;
+        slot.classList.add("is-filled");
+        slot.draggable = true;
+        slot.innerHTML = `
+          <span class="ember-slot-number">${slot.dataset.forjaSlot}</span>
+          <img src="{{ url_for('static', filename='ember.png') }}" alt="">
+          <strong>${name}</strong>
+          ${appId ? `<small>AppID ${appId}</small>` : ""}
+          <button type="button" class="ember-remove-button" data-remove-award="${awardId}" aria-label="Remover ${name}">×</button>
+        `;
+        rebuild();
+      }
+
+      function fillSlot(slot, sourceCard, awardId) {
+        if (slots().some((item) => item !== slot && awardIdAtSlot(item) === awardId)) {
+          const oldSlot = slots().find((item) => item !== slot && awardIdAtSlot(item) === awardId);
+          clearSlot(oldSlot);
+        }
+        setSlot(slot, sourceCard, awardId);
+      }
+
+      library.querySelectorAll(".ember-library-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          const currentSlot = slots().find((slot) => awardIdAtSlot(slot) === card.dataset.awardId);
+          if (currentSlot) {
+            clearSlot(currentSlot);
+            return;
+          }
+          const target = firstEmptySlot();
+          if (target) {
+            fillSlot(target, card, card.dataset.awardId);
+          }
+        });
+      });
+
+      grid.addEventListener("click", (event) => {
+        const removeButton = event.target.closest("[data-remove-award]");
+        if (removeButton) {
+          const slot = removeButton.closest("[data-forja-slot]");
+          clearSlot(slot);
+        }
+      });
+
+      let draggedAwardId = null;
+      let draggedFromSlot = null;
+
+      grid.querySelectorAll("[data-award-id]").forEach((slot) => {
+        slot.addEventListener("dragstart", () => {
+          draggedAwardId = slot.dataset.awardId;
+          draggedFromSlot = slot;
+        });
+      });
+
+      library.querySelectorAll("[draggable='true']").forEach((card) => {
+        card.addEventListener("dragstart", () => {
+          draggedAwardId = card.dataset.awardId;
+          draggedFromSlot = null;
+        });
+      });
+
+      slots().forEach((slot) => {
+        slot.addEventListener("dragover", (event) => event.preventDefault());
+        slot.addEventListener("drop", (event) => {
+          event.preventEventDefault?.();
+          if (!draggedAwardId) return;
+          const sourceCard = library.querySelector(`[data-award-id="${draggedAwardId}"]`);
+          if (draggedFromSlot) {
+            const sourceAward = draggedFromSlot.dataset.awardId;
+            const targetAward = slot.dataset.awardId;
+            if (targetAward) {
+              const targetCard = library.querySelector(`[data-award-id="${targetAward}"]`);
+              setSlot(draggedFromSlot, targetCard, targetAward);
+              setSlot(slot, sourceCard, sourceAward);
+            } else {
+              clearSlot(draggedFromSlot);
+              setSlot(slot, sourceCard, sourceAward);
+            }
+          } else {
+            fillSlot(slot, sourceCard, draggedAwardId);
+          }
+          draggedAwardId = null;
+          draggedFromSlot = null;
+          rebuild();
+        });
+      });
+    })();
+  </script>
+{% endblock %}

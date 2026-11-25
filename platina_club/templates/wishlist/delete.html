@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Remover desejo | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Remover jogo da lista de desejos</h1>
+  <p>Tem certeza de que deseja remover “{{ game_name }}” da sua lista?</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="delete">
+    <button type="submit">Confirmar remoção</button>
+  </form>
+  <p><a href="{{ url_for('wishlist.list_entries') }}">Cancelar</a></p>
+{% endblock %}

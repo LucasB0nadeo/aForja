@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir conta | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro">
+    <p class="eyebrow">ZONA DE RISCO</p>
+    <h1>Excluir sua conta</h1>
+    <p>Esta ação é permanente e não poderá ser desfeita.</p>
+  </section>
+
+  <section class="account-delete-confirmation">
+    <p>
+      Sua conta, perfil, jogos, conquistas, avaliações, coleções, metas,
+      lista de desejos e conexões serão excluídos.
+    </p>
+    <form method="post" action="{{ url_for('auth.delete_account') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="password">Digite sua senha para confirmar</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+      <div class="account-delete-actions">
+        <button class="button-danger" type="submit">Excluir permanentemente</button>
+        <a class="button button-secondary" href="{{ url_for('auth.dashboard') }}">Cancelar</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

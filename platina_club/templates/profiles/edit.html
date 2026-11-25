@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Editar perfil | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro profile-intro">
+    <p class="eyebrow">IDENTIDADE DO JOGADOR</p>
+    <h1>Editar perfil</h1>
+    <p>Personalize a apresentação que aparece no seu perfil público.</p>
+  </section>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  {% if avatar_error %}
+    <p role="alert" class="flash error">{{ avatar_error }}</p>
+  {% endif %}
+  <div class="profile-edit-layout">
+    <form class="profile-edit-form" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="display_name">Nome de exibição</label>
+      <input
+        id="display_name"
+        name="display_name"
+        value="{{ profile.display_name }}"
+        maxlength="40"
+        required
+      >
+      <small class="field-counter"><span data-display-name-count>{{ profile.display_name|length }}</span>/40</small>
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" maxlength="240">{{ profile.bio }}</textarea>
+      <small class="field-counter"><span data-bio-count>{{ profile.bio|length }}</span>/240</small>
+      <label for="privacy">Privacidade do perfil</label>
+      <select id="privacy" name="privacy">
+        <option value="all" {% if profile.privacy == "all" %}selected{% endif %}>Todos</option>
+        <option value="friends" {% if profile.privacy == "friends" %}selected{% endif %}>Apenas Amigos</option>
+        <option value="nobody" {% if profile.privacy == "nobody" %}selected{% endif %}>Ninguém</option>
+      </select>
+      <small>“Ninguém” mantém o perfil visível somente para você.</small>
+      <fieldset>
+        <legend>Ranking mundial de Brasas</legend>
+        <label>
+          <input type="hidden" name="show_ranking_position" value="0">
+          <input
+            id="show_ranking_position"
+            type="checkbox"
+            name="show_ranking_position"
+            value="1"
+            {% if profile.show_ranking_position %}checked{% endif %}
+          >
+          Mostrar minha posição no ranking público
+        </label>
+        <small>Se desativar, sua posição ficará privada e você não aparecerá no ranking.</small>
+      </fieldset>
+      <label for="avatar">Foto personalizada (PNG, JPEG ou WebP; até 2 MB)</label>
+      <input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp">
+      {% if profile.custom_avatar_path %}
+        <label>
+          <input type="checkbox" name="remove_avatar" value="1">
+          Usar foto Steam ou imagem padrão
+        </label>
+      {% endif %}
+      <button type="submit">Salvar perfil</button>
+    </form>
+
+    <aside class="profile-preview" aria-label="Prévia do perfil público">
+      <p class="eyebrow">PREVIA PUBLICA</p>
+      <img
+        id="profile-preview-avatar"
+        src="{{ profile.avatar_display_url }}"
+        alt="Prévia da foto de perfil"
+        width="160"
+        height="160"
+      >
+      <strong id="profile-preview-name">{{ profile.display_name }}</strong>
+      <p id="profile-preview-bio">{{ profile.bio or "Sua bio aparecerá aqui." }}</p>
+    </aside>
+  </div>
+
+  {% if profile.avatar_url %}
+    <form class="steam-avatar-sync" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="sync_steam_avatar">
+      <button type="submit">Sincronizar foto da Steam</button>
+    </form>
+  {% endif %}
+  <p><a href="{{ url_for('profiles.public_profile', user_id=profile.user_id) }}">Ver perfil público</a></p>
+  <p><a href="{{ url_for('profiles.edit_forja') }}">Gerenciar Forja</a></p>
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+  <script>
+    (() => {
+      const nameInput = document.querySelector("#display_name");
+      const bioInput = document.querySelector("#bio");
+      const avatarInput = document.querySelector("#avatar");
+      const previewName = document.querySelector("#profile-preview-name");
+      const previewBio = document.querySelector("#profile-preview-bio");
+      const previewAvatar = document.querySelector("#profile-preview-avatar");
+
+      nameInput?.addEventListener("input", () => {
+        previewName.textContent = nameInput.value.trim() || "Nome do jogador";
+        document.querySelector("[data-display-name-count]").textContent = nameInput.value.length;
+      });
+      bioInput?.addEventListener("input", () => {
+        previewBio.textContent = bioInput.value.trim() || "Sua bio aparecerá aqui.";
+        document.querySelector("[data-bio-count]").textContent = bioInput.value.length;
+      });
+      avatarInput?.addEventListener("change", () => {
+        const file = avatarInput.files[0];
+        if (file && file.type.startsWith("image/")) {
+          previewAvatar.src = URL.createObjectURL(file);
+        }
+      });
+    })();
+  </script>
+{% endblock %}

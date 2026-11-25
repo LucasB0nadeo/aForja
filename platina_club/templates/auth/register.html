@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Criar conta | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Criar conta</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="email">E-mail</label>
+    <input id="email" name="email" type="email" autocomplete="email" required>
+    <label for="password">Senha</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" required>
+    <button type="submit">Cadastrar</button>
+  </form>
+  <p>Já tem conta? <a href="{{ url_for('auth.login') }}">Entrar</a></p>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Minha biblioteca | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Minha biblioteca</h1>
+  <p><a href="{{ url_for('library.create_game') }}">Cadastrar jogo manualmente</a></p>
+  <section class="library-summary" aria-label="Resumo da biblioteca">
+    <div><strong>{{ summary.total }}</strong><span>Jogos</span></div>
+    <div><strong>{{ summary.completed }}</strong><span>Concluídos</span></div>
+    <div><strong>{{ summary.in_progress }}</strong><span>Em progresso</span></div>
+    <div><strong>{{ summary.not_started }}</strong><span>Não iniciados</span></div>
+    <div><strong>{{ summary.average }}%</strong><span>Progresso médio</span></div>
+  </section>
+  <form class="library-toolbar" method="get" action="{{ url_for('library.list_games') }}">
+    <div class="library-search">
+      <label for="library-query">Buscar jogo</label>
+      <input id="library-query" name="q" type="search" value="{{ query }}" placeholder="Nome do jogo">
+    </div>
+    <div>
+      <label for="library-status">Estado</label>
+      <select id="library-status" name="status">
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>Todos</option>
+        <option value="completed" {% if status_filter == "completed" %}selected{% endif %}>Concluídos</option>
+        <option value="in_progress" {% if status_filter == "in_progress" %}selected{% endif %}>Em progresso</option>
+        <option value="not_started" {% if status_filter == "not_started" %}selected{% endif %}>Não iniciados</option>
+      </select>
+    </div>
+    <div>
+      <label for="library-sort">Ordenar por</label>
+      <select id="library-sort" name="sort">
+        <option value="name" {% if sort_by == "name" %}selected{% endif %}>A-Z</option>
+        <option value="progress" {% if sort_by == "progress" %}selected{% endif %}>Porcentagem de conclusão</option>
+        <option value="latest" {% if sort_by == "latest" %}selected{% endif %}>Última conquista</option>
+      </select>
+    </div>
+    <div>
+      <label for="library-direction">Ordem</label>
+      <select id="library-direction" name="direction">
+        <option value="asc" {% if direction == "asc" %}selected{% endif %}>Crescente</option>
+        <option value="desc" {% if direction == "desc" %}selected{% endif %}>Decrescente</option>
+      </select>
+    </div>
+    <div>
+      <label for="library-page-size">Por página</label>
+      <select id="library-page-size" name="page_size">
+        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+        <option value="20" {% if page_size == 20 %}selected{% endif %}>20</option>
+        <option value="30" {% if page_size == 30 %}selected{% endif %}>30</option>
+      </select>
+    </div>
+    <button type="submit">Aplicar</button>
+  </form>
+  <ul class="game-grid">
+    {% for game in games %}
+      <li class="game-card">
+        <a class="game-card-link" href="{{ url_for('library.game_detail', game_id=game.id) }}">
+          <span class="game-card-cover">
+            <span class="game-card-placeholder" aria-hidden="true">Sem capa disponível</span>
+            {% if game.icon_url %}
+              <img
+                src="{{ game.icon_url }}"
+                alt=""
+                loading="lazy"
+                data-game-cover
+              >
+            {% elif game.steam_app_id %}
+              <img
+                src="https://cdn.akamai.steamstatic.com/steam/apps/{{ game.steam_app_id }}/header.jpg"
+                alt=""
+                loading="lazy"
+                data-game-cover
+              >
+            {% endif %}
+          </span>
+          <strong class="game-card-name">{{ game.name }}</strong>
+          <span class="game-card-status status-{{ game.completion_status }}">
+            {% if game.completion_status == "completed" %}
+              Concluído
+            {% elif game.completion_status == "in_progress" %}
+              Em progresso
+            {% else %}
+              Não iniciado
+            {% endif %}
+          </span>
+          {% if game.recent_unlocked_count > 0 %}
+            <span class="game-card-recent">
+              {{ game.recent_unlocked_count }} conquista{% if game.recent_unlocked_count != 1 %}s{% endif %} nos últimos 7 dias
+            </span>
+          {% endif %}
+          {% if game.achievement_total > 0 %}
+            {% set progress_percent = (100 * game.achievement_unlocked / game.achievement_total)|round|int %}
+            <span class="game-card-progress">
+              <progress
+                class="game-progress-bar"
+                value="{{ game.achievement_unlocked }}"
+                max="{{ game.achievement_total }}"
+                aria-label="Progresso das conquistas de {{ game.name }}"
+              ></progress>
+              <span class="game-progress-label">
+                {{ progress_percent }}% {{ game.achievement_unlocked }}/{{ game.achievement_total }}
+              </span>
+            </span>
+            {% if game.source == "steam" and game.achievements_sync_status == "stale" %}
+              <small class="game-progress-note">Dados desatualizados</small>
+            {% endif %}
+          {% elif game.source == "steam" %}
+            {% if game.achievements_sync_status == "success" %}
+              <span class="game-card-progress-empty">Sem conquistas Steam</span>
+            {% elif game.achievements_sync_status == "stale" %}
+              <span class="game-card-progress-empty">Progresso desatualizado</span>
+            {% elif game.achievements_sync_status == "error" %}
+              <span class="game-card-progress-empty">Progresso indisponível</span>
+            {% else %}
+              <span class="game-card-progress-empty">Ainda não sincronizado</span>
+            {% endif %}
+          {% else %}
+            <span class="game-card-progress-empty">Sem conquistas cadastradas</span>
+          {% endif %}
+        </a>
+        <div class="game-card-footer">
+          <span>{{ game.platform or "Steam" }}</span>
+          <div class="game-card-actions">
+            {% if game.source == "manual" %}
+              <a href="{{ url_for('library.edit_game', game_id=game.id) }}">Editar</a>
+            {% endif %}
+            {% if game.source == "manual" or not steam_link %}
+              <a href="{{ url_for('library.delete_game', game_id=game.id) }}">Excluir</a>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+    {% else %}
+      <li class="game-grid-empty">Sua biblioteca ainda está vazia.</li>
+    {% endfor %}
+  </ul>
+  {% if total_filtered > 0 %}
+    <nav class="library-pagination" aria-label="Paginação da biblioteca">
+      {% if page > 1 %}
+        <a class="button button-small" href="{{ url_for('library.list_games', sort=sort_by, direction=direction, status=status_filter, q=query, page_size=page_size, page=page-1) }}">Anterior</a>
+      {% endif %}
+      <span>Página {{ page }} de {{ total_pages }} · {{ total_filtered }} jogo(s)</span>
+      {% if page < total_pages %}
+        <a class="button button-small" href="{{ url_for('library.list_games', sort=sort_by, direction=direction, status=status_filter, q=query, page_size=page_size, page=page+1) }}">Próxima</a>
+      {% endif %}
+    </nav>
+  {% elif query or status_filter != "all" %}
+    <p class="game-grid-empty">Nenhum jogo corresponde aos filtros selecionados.</p>
+  {% endif %}
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+  {% if steam_link %}
+    <section class="library-sync-actions" aria-labelledby="library-sync-heading">
+      <h2 id="library-sync-heading">Sincronizar Steam</h2>
+      <p>Atualize a biblioteca e todas as conquistas Steam em uma única operação.</p>
+      <div class="library-sync-buttons">
+        <form method="post" action="{{ url_for('library.sync_steam') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit">Sincronizar Steam</button>
+        </form>
+      </div>
+    </section>
+  {% endif %}
+  <script src="{{ url_for('static', filename='game-covers.js') }}" defer></script>
+{% endblock %}

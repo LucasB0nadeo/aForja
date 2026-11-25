@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir jogo | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Excluir jogo</h1>
+  <p>Deseja excluir <strong>{{ game.name }}</strong> da biblioteca?</p>
+  {% if achievement_count %}
+    <p>Esta ação também removerá {{ achievement_count }} conquista(s) associada(s).</p>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="delete">
+    <button type="submit">Confirmar exclusão</button>
+  </form>
+  <p><a href="{{ url_for('library.list_games') }}">Cancelar</a></p>
+{% endblock %}

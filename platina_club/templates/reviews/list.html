@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas avaliações | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Minhas avaliações</h1>
+  <p><a href="{{ url_for('reviews.create_review') }}">Avaliar jogo Steam</a></p>
+  <ul>
+    {% for review in reviews %}
+      <li>
+        <strong>{{ review.game_name or ("AppID " ~ review.steam_app_id) }}</strong>
+        <p>Nota: {{ review.rating }} de 5</p>
+        <p>{{ review.review_text }}</p>
+        <a href="{{ url_for('reviews.edit_review', review_id=review.id) }}">Editar</a>
+        <a href="{{ url_for('reviews.delete_review', review_id=review.id) }}">Excluir</a>
+      </li>
+    {% else %}
+      <li>Você ainda não registrou avaliações.</li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+{% endblock %}

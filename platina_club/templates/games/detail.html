@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ game.name }} | FORJA{% endblock %}
+
+{% block content %}
+  <h1>{{ game.name }}</h1>
+  {% if game.source == "manual" %}
+    <dl>
+      <dt>Plataforma</dt><dd>{{ game.platform }}</dd>
+      <dt>Desenvolvedora</dt><dd>{{ game.developer }}</dd>
+      <dt>Ano de lançamento</dt><dd>{{ game.release_year }}</dd>
+    </dl>
+    <p><a href="{{ url_for('library.edit_game', game_id=game.id) }}">Editar jogo</a></p>
+    <p><a href="{{ url_for('library.create_achievement', game_id=game.id) }}">Cadastrar conquista</a></p>
+  {% else %}
+    <p>Jogo importado da Steam · AppID {{ game.steam_app_id }}</p>
+    <section aria-labelledby="steam-achievements-status">
+      <h2 id="steam-achievements-status">Sincronização de conquistas</h2>
+      <p>
+        Estado:
+        {% if game.achievements_sync_status == "success" %}atualizado
+        {% elif game.achievements_sync_status == "stale" %}desatualizado
+        {% elif game.achievements_sync_status == "error" %}erro na primeira sincronização
+        {% else %}ainda não sincronizado{% endif %}
+      </p>
+      {% if game.achievements_synced_at %}
+        <p>Última sincronização bem-sucedida: {{ game.achievements_synced_at }}</p>
+      {% endif %}
+      {% if game.achievements_sync_error %}
+        <p role="alert">{{ game.achievements_sync_error }}</p>
+      {% endif %}
+      {% if steam_linked %}
+        <form method="post" action="{{ url_for('library.sync_achievements', game_id=game.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit">Sincronizar conquistas Steam</button>
+        </form>
+      {% else %}
+        <p>Vincule uma conta Steam para sincronizar novamente.</p>
+      {% endif %}
+    </section>
+    {% if progress %}
+      <p>
+        Progresso de conquistas:
+        {{ progress.unlocked }} de {{ progress.total }}
+        ({{ progress.percent }}%)
+      </p>
+    {% endif %}
+    {% if badge_awards %}
+      <h2>Recompensas deste jogo</h2>
+      <ul class="badge-reward-list">
+        {% for award in badge_awards %}
+          <li class="badge-reward">
+            {% if award.badge_type == "copper_sparks" %}
+              <img src="{{ url_for('static', filename='copper_sparks.png') }}" alt="">
+            {% elif award.badge_type == "bronze_hammer" %}
+              <img src="{{ url_for('static', filename='bronze_hammer.png') }}" alt="">
+            {% elif award.badge_type == "silver_hammer" %}
+              <img src="{{ url_for('static', filename='silver_hammer.png') }}" alt="">
+            {% elif award.badge_type == "gold_hammer" %}
+              <img src="{{ url_for('static', filename='gold_hammer.png') }}" alt="">
+            {% elif award.badge_type == "ember" %}
+              <img src="{{ url_for('static', filename='ember.png') }}" alt="">
+            {% endif %}
+            <span>{{ badge_labels[award.badge_type] }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  <h2>Conquistas</h2>
+  <ul class="achievement-list">
+    {% for achievement in achievements %}
+      <li class="achievement-item">
+        {% if achievement.source == "steam" %}
+          {% if achievement.unlocked and achievement.icon_url %}
+            <img class="achievement-icon" src="{{ achievement.icon_url }}" alt="">
+          {% elif not achievement.unlocked and achievement.icon_gray_url %}
+            <img class="achievement-icon" src="{{ achievement.icon_gray_url }}" alt="">
+          {% else %}
+            <span class="achievement-icon achievement-icon-placeholder" aria-hidden="true">?</span>
+          {% endif %}
+        {% endif %}
+        <div class="achievement-content">
+          <strong>{{ achievement.name }}</strong>
+          {% if achievement.description %}<p>{{ achievement.description }}</p>{% endif %}
+          {% if achievement.rarity %}
+            <p>Raridade: {{ achievement.rarity }}</p>
+          {% endif %}
+          {% if achievement.source == "steam" and achievement.global_percent is not none %}
+            <p>Conquistada por {{ "%.1f"|format(achievement.global_percent) }}% dos jogadores globais</p>
+          {% endif %}
+          <p>Estado: {% if achievement.unlocked %}Desbloqueada{% else %}Bloqueada{% endif %}</p>
+          {% if achievement.source == "manual" %}
+            <a href="{{ url_for('library.edit_achievement', game_id=game.id, achievement_id=achievement.id) }}">Editar</a>
+            <a href="{{ url_for('library.delete_achievement', game_id=game.id, achievement_id=achievement.id) }}">Excluir</a>
+          {% else %}
+            <span>Dados sincronizados da Steam</span>
+          {% endif %}
+        </div>
+      </li>
+    {% else %}
+      {% if game.source == "steam" and game.achievements_sync_status != "success" %}
+        <li>As conquistas ainda não estão disponíveis; sincronize o jogo para consultar o progresso.</li>
+      {% elif game.source == "steam" %}
+        <li>A Steam não definiu conquistas para este jogo.</li>
+      {% else %}
+        <li>Este jogo ainda não tem conquistas cadastradas.</li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <p><a href="{{ url_for('library.list_games') }}">Voltar à biblioteca</a></p>
+{% endblock %}

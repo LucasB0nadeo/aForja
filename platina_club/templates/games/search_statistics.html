@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Pesquisar jogos | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro">
+    <p class="eyebrow">ESTATÍSTICAS DA COMUNIDADE</p>
+    <h1>Pesquisar jogos</h1>
+    <p>Encontre um jogo para consultar as avaliações e as estatísticas de conquistas.</p>
+  </section>
+
+  <form
+    class="game-statistics-search"
+    method="get"
+    action="{{ url_for('library.game_statistics') }}"
+  >
+    <label for="statistics-game-search">Nome do jogo</label>
+    <input
+      id="statistics-game-search"
+      name="query"
+      data-steam-game-search
+      data-search-url="{{ url_for('steam.search_games') }}"
+      type="search"
+      autocomplete="off"
+      minlength="2"
+      required
+      placeholder="Ex.: Hollow Knight"
+    >
+    <input type="hidden" name="steam_app_id" value="">
+    <div class="game-search-results" data-steam-search-results role="listbox"></div>
+    <p class="game-search-status" data-steam-search-status aria-live="polite"></p>
+    <button type="submit">Ver estatísticas</button>
+  </form>
+
+  <p><a href="{{ url_for('library.list_games') }}">Voltar à biblioteca</a></p>
+  <script src="{{ url_for('static', filename='game-search.js') }}" defer></script>
+{% endblock %}

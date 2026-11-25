@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Estatísticas de {{ game_name }} | FORJA{% endblock %}
+
+{% block content %}
+  <section class="game-statistics-header">
+    {% if game_icon_url %}
+      <img src="{{ game_icon_url }}" alt="" loading="lazy">
+    {% endif %}
+    <div>
+      <p class="eyebrow">ESTATÍSTICAS DO JOGO · APPID {{ steam_app_id }}</p>
+      <h1>{{ game_name }}</h1>
+    </div>
+  </section>
+  <p>
+    <a href="{{ url_for('library.search_game_statistics') }}">Pesquisar outro jogo</a>
+    {% if library_game_id %}
+      · <a href="{{ url_for('library.game_detail', game_id=library_game_id) }}">Ver na minha biblioteca</a>
+    {% endif %}
+  </p>
+
+  {% if catalog_error %}
+    <p class="game-statistics-note">{{ catalog_error }}</p>
+  {% endif %}
+  {% if catalog_game_available and not library_game_id %}
+    <form class="game-statistics-library-action" method="post" action="{{ url_for('library.import_steam_game') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="steam_app_id" value="{{ steam_app_id }}">
+      <button type="submit">Adicionar à minha biblioteca</button>
+      <p class="game-statistics-note">
+        A inclusão manual não comprova propriedade na Steam; a sincronização de conquistas depende de dados disponíveis para sua conta.
+      </p>
+    </form>
+  {% endif %}
+
+  <section class="game-statistics-section" aria-labelledby="hltb-heading">
+    <h2 id="hltb-heading">Tempos de conclusão</h2>
+    {% if hltb_search_name %}
+      {% if hltb_search_name|length <= 100 %}
+        <p>Estimativas comunitárias do HowLongToBeat; os tempos são aproximados e podem variar.</p>
+        <div
+          class="hltb-async-results"
+          data-hltb-results
+          data-hltb-url="{{ url_for('library.search_howlongtobeat', query=hltb_search_name, fragment=1) }}"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <p class="hltb-status" role="status">Buscando estimativas de conclusão...</p>
+        </div>
+      {% else %}
+        <p class="hltb-status">O nome deste jogo é longo demais para consultar no HowLongToBeat.</p>
+      {% endif %}
+    {% else %}
+      <p>O nome do jogo não está disponível para consulta no HowLongToBeat.</p>
+    {% endif %}
+  </section>
+  <script src="{{ url_for('static', filename='hltb-statistics.js') }}" defer></script>
+
+  <section class="game-statistics-reviews" aria-labelledby="game-reviews-heading">
+    <h2 id="game-reviews-heading">Avaliações</h2>
+    <div class="game-statistics-cards">
+      <article>
+        <h3>Comunidade da Forja</h3>
+        {% if review_stats.average is not none %}
+          <strong>{{ "%.1f"|format(review_stats.average) }} / 5</strong>
+          <p>{{ review_stats.count }} avaliação{% if review_stats.count != 1 %}ões{% endif %}</p>
+        {% else %}
+          <p>Ainda não há avaliações deste jogo na Forja.</p>
+        {% endif %}
+      </article>
+      <article>
+        <h3>Página do jogo na Steam</h3>
+        <p>Veja os detalhes, avaliações e outras informações na loja Steam.</p>
+        <a
+          class="button"
+          href="https://store.steampowered.com/app/{{ steam_app_id }}/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Abrir na Steam</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="game-statistics-section" aria-labelledby="forja-badges-heading">
+    <h2 id="forja-badges-heading">Insígnias conquistadas na Forja</h2>
+    {% if eligible_players %}
+      <p>
+        Percentual entre {{ eligible_players }} jogador{% if eligible_players != 1 %}es{% endif %}
+        com conquistas Steam sincronizadas para este jogo.
+      </p>
+      <div class="game-statistics-table-wrap">
+        <table class="game-statistics-table">
+          <thead>
+            <tr><th scope="col">Insígnia</th><th scope="col">Jogadores</th><th scope="col">Percentual</th></tr>
+          </thead>
+          <tbody>
+            {% for badge in badge_stats %}
+              <tr>
+                <th scope="row">{{ badge.label }}</th>
+                <td>{{ badge.count }} / {{ eligible_players }}</td>
+                <td>{{ "%.1f"|format(badge.percent) }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Ainda não há dados de conquistas sincronizadas por jogadores da Forja para este jogo.</p>
+    {% endif %}
+  </section>
+
+  <section class="game-statistics-section" aria-labelledby="steam-achievements-heading">
+    <h2 id="steam-achievements-heading">Desbloqueio global das conquistas Steam</h2>
+    {% if steam_achievements %}
+      <p>Percentual de jogadores Steam que desbloquearam cada conquista.</p>
+      <div class="game-statistics-table-wrap">
+        <table class="game-statistics-table">
+          <thead>
+            <tr><th scope="col">Conquista</th><th scope="col">Desbloqueada por</th></tr>
+          </thead>
+          <tbody>
+            {% for achievement in steam_achievements %}
+              <tr>
+                <th scope="row">{{ achievement.name }}</th>
+                <td>{{ "%.1f"|format(achievement.global_percent) }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Ainda não há dados globais de conquistas Steam disponíveis na Forja para este jogo.</p>
+    {% endif %}
+  </section>
+{% endblock %}

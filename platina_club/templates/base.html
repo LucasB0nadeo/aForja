@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#202020">
+    <title>{% block title %}FORJA{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="FORJA, página inicial">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="{{ url_for('static', filename='logo-forja.png') }}" alt="">
+          </span>
+          <span class="brand-copy">
+            <strong>FORJA</strong>
+            <small>CLUBE DE CONQUISTAS</small>
+          </span>
+        </a>
+
+        <p class="sidebar-label">SUA OFICINA</p>
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+          {% if session.get("user_id") %}
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('profiles.') and request.endpoint != 'profiles.friends_page' %}is-active{% endif %}" href="{{ url_for('profiles.public_profile', user_id=session.get('user_id')) }}">
+              <span class="nav-icon" aria-hidden="true">◉</span><span>Perfil e Forja</span>
+            </a>
+            <a class="nav-link {% if request.endpoint == 'profiles.friends_page' %}is-active{% endif %}" href="{{ url_for('profiles.friends_page') }}">
+              <span class="nav-icon" aria-hidden="true">♟</span><span>Amigos</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('rankings.') %}is-active{% endif %}" href="{{ url_for('rankings.leaderboard') }}">
+              <span class="nav-icon" aria-hidden="true">♛</span><span>Rankings</span>
+            </a>
+            <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}is-active{% endif %}" href="{{ url_for('auth.dashboard') }}">
+              <span class="nav-icon" aria-hidden="true">⌂</span><span>Painel</span>
+            </a>
+            <a class="nav-link {% if request.endpoint in ('library.search_game_statistics', 'library.game_statistics') %}is-active{% endif %}" href="{{ url_for('library.search_game_statistics') }}">
+              <span class="nav-icon" aria-hidden="true">⌕</span><span>Pesquisar jogos</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('library.') and request.endpoint not in ('library.search_game_statistics', 'library.game_statistics') %}is-active{% endif %}" href="{{ url_for('library.list_games') }}">
+              <span class="nav-icon" aria-hidden="true">▤</span><span>Biblioteca</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('collections.') %}is-active{% endif %}" href="{{ url_for('collections.list_collections') }}">
+              <span class="nav-icon" aria-hidden="true">▦</span><span>Coleções</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('reviews.') %}is-active{% endif %}" href="{{ url_for('reviews.list_reviews') }}">
+              <span class="nav-icon" aria-hidden="true">✦</span><span>Avaliações</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('wishlist.') %}is-active{% endif %}" href="{{ url_for('wishlist.list_entries') }}">
+              <span class="nav-icon" aria-hidden="true">♡</span><span>Lista de desejos</span>
+            </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('goals.') %}is-active{% endif %}" href="{{ url_for('goals.list_goals') }}">
+              <span class="nav-icon" aria-hidden="true">◎</span><span>Metas</span>
+            </a>
+          {% else %}
+            <a class="nav-link is-active" href="{{ url_for('index') }}">
+              <span class="nav-icon" aria-hidden="true">⌂</span><span>Início</span>
+            </a>
+            <a class="nav-link" href="{{ url_for('auth.login') }}">
+              <span class="nav-icon" aria-hidden="true">↗</span><span>Entrar</span>
+            </a>
+          {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+          <span class="forge-status"><span aria-hidden="true"></span> OFICINA ABERTA</span>
+          <p>Cada conquista molda sua história.</p>
+        </div>
+      </aside>
+
+      <div class="main-column">
+        <header class="topbar">
+          <div class="topbar-context">
+            <span class="topbar-kicker">FORJA / SUA JORNADA</span>
+            <span class="topbar-caption">Registre. Evolua. Conquiste.</span>
+          </div>
+          <div class="topbar-actions">
+            {% if session.get("user_id") %}
+              <a class="topbar-profile" href="{{ url_for('profiles.public_profile', user_id=session.get('user_id')) }}">
+                <img class="profile-orb" src="{{ current_user_avatar_url }}" alt="">
+                <span>Meu perfil</span>
+              </a>
+            {% else %}
+              <a class="topbar-login" href="{{ url_for('auth.login') }}">Já tenho conta</a>
+              <a class="button button-small" href="{{ url_for('auth.register') }}">Criar conta</a>
+            {% endif %}
+          </div>
+        </header>
+
+        <main class="main-content" id="main-content">
+          <div class="flash-stack" aria-live="polite">
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+              <p role="alert" class="flash {{ category }}">{{ message }}</p>
+            {% endfor %}
+          </div>
+          {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+          <span>FORJA</span>
+          <span>Cada conquista molda sua história.</span>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

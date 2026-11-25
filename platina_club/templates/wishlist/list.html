@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de desejos | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Lista de desejos</h1>
+  <p><a href="{{ url_for('wishlist.create_entry') }}">Adicionar jogo Steam</a></p>
+  <ul>
+    {% for entry in entries %}
+      <li>
+        <strong>{{ entry.game_name or ("AppID " ~ entry.steam_app_id) }}</strong>
+        <p>AppID Steam: {{ entry.steam_app_id }}</p>
+        {% if entry.developer %}<p>Desenvolvedora: {{ entry.developer }}</p>{% endif %}
+        {% if entry.release_date %}<p>Lançamento: {{ entry.release_date }}</p>{% endif %}
+        {% if entry.platforms %}<p>Plataformas: {{ entry.platforms }}</p>{% endif %}
+        <p>Prioridade: {{ entry.priority }} de 5</p>
+        {% if entry.notes %}<p>{{ entry.notes }}</p>{% endif %}
+        <a href="{{ url_for('wishlist.edit_entry', entry_id=entry.id) }}">Editar</a>
+        <a href="{{ url_for('wishlist.delete_entry', entry_id=entry.id) }}">Remover</a>
+      </li>
+    {% else %}
+      <li>Sua lista de desejos está vazia.</li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a></p>
+{% endblock %}

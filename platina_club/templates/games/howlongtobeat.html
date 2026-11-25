@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Tempos de conclusão | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro">
+    <p class="eyebrow">HOWLONGTOBEAT</p>
+    <h1>Tempos de conclusão</h1>
+    <p>Estimativas comunitárias para <strong>{{ query }}</strong>. Os tempos são aproximados e podem variar.</p>
+  </section>
+
+  {% include "games/_howlongtobeat_results.html" %}
+
+  <p><a href="{{ url_for('library.search_game_statistics') }}">Pesquisar outro jogo</a></p>
+{% endblock %}

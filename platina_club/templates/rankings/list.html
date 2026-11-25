@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Rankings | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro">
+    <p class="eyebrow">JORNADA DA COMUNIDADE</p>
+    <h1>Rankings</h1>
+    <p>Veja quem mais conquistou Brasas e desbloqueou conquistas.</p>
+  </section>
+
+  {% macro leaderboard(board) %}
+    <section class="ranking-card" aria-label="{{ board.title }}">
+      <header class="ranking-card-header">
+        <h2>{{ board.title }}</h2>
+        <span class="ranking-period">{{ board.period }}</span>
+      </header>
+      {% if board.players %}
+        <ol class="ranking-list">
+          {% for player in board.players %}
+            <li>
+              <span class="ranking-position">{{ player.rank }}</span>
+              <a class="ranking-player" href="{{ url_for('profiles.public_profile', user_id=player.user_id) }}">{{ player.display_name }}</a>
+              <span class="ranking-score">
+                {% if "embers" in board.metric %}
+                  {{ player[board.metric] }} {% if player[board.metric] == 1 %}Brasa{% else %}Brasas{% endif %}
+                {% else %}
+                  {{ player[board.metric] }} {% if player[board.metric] == 1 %}conquista{% else %}conquistas{% endif %}
+                {% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="ranking-empty">Ainda não há jogadores neste ranking.</p>
+      {% endif %}
+    </section>
+  {% endmacro %}
+
+  <div class="ranking-grid">
+    {% for board in boards %}
+      {{ leaderboard(board) }}
+    {% endfor %}
+  </div>
+{% endblock %}

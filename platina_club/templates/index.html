@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}FORJA — Cada conquista molda sua história{% endblock %}
+
+{% block content %}
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow">SUA OFICINA DE CONQUISTAS</p>
+      <h1 id="hero-title">Cada conquista molda sua <span>história.</span></h1>
+      <p>
+        Registre sua jornada na Steam, acompanhe cada progresso e transforme
+        suas vitórias em marcas da sua evolução como jogador.
+      </p>
+      <div class="hero-actions">
+        {% if session.get("user_id") %}
+          <a class="button" href="{{ url_for('auth.dashboard') }}">Abrir meu painel</a>
+          <a class="hero-secondary" href="{{ url_for('library.list_games') }}">Ir para a biblioteca &rarr;</a>
+        {% else %}
+          <a class="button" href="{{ url_for('auth.register') }}">Começar minha jornada</a>
+          <a class="hero-secondary" href="{{ url_for('auth.login') }}">Já tenho uma conta &rarr;</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="hero-medallion">
+        <img src="{{ url_for('static', filename='logo-forja.png') }}" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section" aria-labelledby="journey-title">
+    <p class="eyebrow">FORJE NO SEU RITMO</p>
+    <h2 id="journey-title">Uma jornada. Muitas conquistas.</h2>
+    <div class="feature-grid">
+      <article class="feature-card">
+        <strong>Biblioteca em um só lugar</strong>
+        <p>Reúna seus jogos e mantenha sua coleção organizada, manualmente ou com a Steam.</p>
+      </article>
+      <article class="feature-card">
+        <strong>Progresso que vira história</strong>
+        <p>Acompanhe suas conquistas e receba insígnias a cada marco alcançado.</p>
+      </article>
+      <article class="feature-card">
+        <strong>Sua própria Forja</strong>
+        <p>Destaque as Brasas conquistadas e mostre as jornadas que marcaram seu perfil.</p>
+      </article>
+    </div>
+  </section>
+{% endblock %}

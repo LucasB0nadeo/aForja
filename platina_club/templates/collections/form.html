@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing %}Editar coleção{% else %}Criar coleção{% endif %} | FORJA{% endblock %}
+
+{% block content %}
+  <h1>{% if editing %}Editar coleção{% else %}Criar coleção{% endif %}</h1>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="name">Nome</label>
+    <input id="name" name="name" value="{{ collection.name }}" required>
+    <label for="description">Descrição</label>
+    <textarea id="description" name="description">{{ collection.description }}</textarea>
+    <fieldset>
+      <legend>Jogos da coleção</legend>
+      {% for game in games %}
+        <label>
+          <input
+            type="checkbox"
+            name="game_ids"
+            value="{{ game.id }}"
+            {% if game.id in selected_game_ids %}checked{% endif %}
+          >
+          {{ game.name }}{% if game.source == "steam" %} (Steam){% endif %}
+        </label>
+      {% else %}
+        <p>Sua biblioteca ainda não tem jogos.</p>
+      {% endfor %}
+    </fieldset>
+    <button type="submit">{% if editing %}Salvar alterações{% else %}Criar coleção{% endif %}</button>
+  </form>
+  <p><a href="{{ url_for('collections.list_collections') }}">Cancelar</a></p>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Editar jogo da meta | FORJA{% endblock %}
+
+{% block content %}
+  <section class="page-intro goals-intro">
+    <p class="eyebrow">JOGO DA META</p>
+    <h1>Editar jogo</h1>
+    <p>Meta: {{ goal.objective }}</p>
+  </section>
+  {% for message in get_flashed_messages(category_filter=["error"]) %}
+    <p role="alert" class="flash error">{{ message }}</p>
+  {% endfor %}
+  <form class="goal-form" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="goal-game-edit-search">Nome do jogo</label>
+    <input
+      id="goal-game-edit-search"
+      name="game_name"
+      data-steam-game-search
+      data-search-url="{{ url_for('steam.search_games') }}"
+      type="search"
+      autocomplete="off"
+      minlength="2"
+      value="{{ goal_game.game_name or '' }}"
+      required
+    >
+    <input type="hidden" name="steam_app_id" value="{{ goal_game.steam_app_id or '' }}">
+    <div class="game-search-results" data-steam-search-results role="listbox"></div>
+    <p class="game-search-status" data-steam-search-status aria-live="polite"></p>
+    <button type="submit">Salvar jogo</button>
+  </form>
+  <p><a href="{{ url_for('goals.edit_goal', goal_id=goal.id) }}">Cancelar</a></p>
+  <script src="{{ url_for('static', filename='game-search.js') }}" defer></script>
+{% endblock %}

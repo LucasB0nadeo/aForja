@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing %}Editar desejo{% else %}Adicionar desejo{% endif %} | FORJA{% endblock %}
+
+{% block content %}
+  <h1>{% if editing %}Editar item da lista{% else %}Adicionar à lista de desejos{% endif %}</h1>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if editing %}
+      <p>{{ entry.game_name }} · AppID {{ entry.steam_app_id }}</p>
+    {% else %}
+      <label for="wishlist-game-search">Nome do jogo</label>
+      <input
+        id="wishlist-game-search"
+        name="game_name"
+        data-steam-game-search
+        data-search-url="{{ url_for('steam.search_games') }}"
+        type="search"
+        autocomplete="off"
+        minlength="2"
+        value="{{ entry.game_name or '' }}"
+        required
+      >
+      <input type="hidden" name="steam_app_id" value="{{ entry.steam_app_id }}">
+      <div class="game-search-results" data-steam-search-results role="listbox"></div>
+      <p class="game-search-status" data-steam-search-status aria-live="polite"></p>
+    {% endif %}
+    <label for="priority">Prioridade (1 a 5)</label>
+    <input
+      id="priority"
+      name="priority"
+      type="number"
+      min="1"
+      max="5"
+      step="1"
+      value="{{ entry.priority }}"
+      required
+    >
+    <label for="notes">Observação</label>
+    <textarea id="notes" name="notes">{{ entry.notes }}</textarea>
+    <button type="submit">{% if editing %}Salvar alterações{% else %}Adicionar jogo{% endif %}</button>
+  </form>
+  <p><a href="{{ url_for('wishlist.list_entries') }}">Cancelar</a></p>
+  {% if not editing %}
+    <script src="{{ url_for('static', filename='game-search.js') }}" defer></script>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing %}Editar conquista{% else %}Cadastrar conquista{% endif %} | FORJA{% endblock %}
+
+{% block content %}
+  <h1>{% if editing %}Editar conquista{% else %}Cadastrar conquista{% endif %}</h1>
+  <p>Jogo: {{ game.name }}</p>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="name">Nome</label>
+    <input id="name" name="name" value="{{ achievement.name }}" required>
+    <label for="description">Descrição</label>
+    <textarea id="description" name="description" required>{{ achievement.description }}</textarea>
+    <label for="rarity">Raridade</label>
+    <input id="rarity" name="rarity" value="{{ achievement.rarity }}" required>
+    <label>
+      <input type="checkbox" name="unlocked" value="1" {% if achievement.unlocked %}checked{% endif %}>
+      Desbloqueada
+    </label>
+    <button type="submit">{% if editing %}Salvar alterações{% else %}Cadastrar conquista{% endif %}</button>
+  </form>
+  <p><a href="{{ url_for('library.game_detail', game_id=game.id) }}">Cancelar</a></p>
+{% endblock %}

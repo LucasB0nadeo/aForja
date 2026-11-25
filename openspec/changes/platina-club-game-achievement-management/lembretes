@@ -1,0 +1,23 @@
+Front-end: HTML, CSS e JavaScript. Os templates estão em platina_club/templates.
+Back-end: Python, utilizando o framework Flask.
+Banco de dados: SQLite, com consultas escritas em SQL.
+
+
+achievement_ranking_records
+achievements
+badge_awards
+collection_games
+collections
+ember_ranking_records
+forja_slots
+friendships
+game_reviews
+games
+goal_games
+personal_goals
+profiles
+steam_catalog
+steam_links
+users
+wishlist_entries
+Elas ficam no banco platina-club.sqlite3.

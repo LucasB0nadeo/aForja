@@ -1,0 +1,37 @@
+{% if hltb_results is none %}
+  <p class="hltb-status" role="status">
+    <strong>Serviço indisponível.</strong>
+    Não foi possível consultar o HowLongToBeat agora. Tente novamente mais tarde.
+  </p>
+{% elif not hltb_results %}
+  <p class="hltb-status">Nenhum resultado encontrado para essa busca.</p>
+{% else %}
+  <section class="hltb-results" aria-label="Resultados do HowLongToBeat">
+    {% for game in hltb_results %}
+      <article class="hltb-result">
+        <div class="hltb-result-heading">
+          <h2>{{ game.game_name }}</h2>
+          <span>Correspondência: {{ "%.0f"|format(game.similarity * 100) }}%</span>
+        </div>
+        <dl>
+          {% for label, hours in [
+            ("História principal", game.main_story),
+            ("História + extras", game.main_extra),
+            ("Complecionista", game.completionist),
+            ("Todos os estilos", game.all_styles),
+            ("Cooperativo", game.coop_time),
+            ("Multiplayer", game.mp_time)
+          ] %}
+            <div>
+              <dt>{{ label }}</dt>
+              <dd>{% if hours is not none and hours > 0 %}{{ "%.1f"|format(hours) }} h{% else %}Sem dados{% endif %}</dd>
+            </div>
+          {% endfor %}
+        </dl>
+        {% if game.game_url %}
+          <a href="{{ game.game_url }}" target="_blank" rel="noopener noreferrer">Ver no HowLongToBeat</a>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+{% endif %}

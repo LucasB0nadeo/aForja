@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir avaliação | FORJA{% endblock %}
+
+{% block content %}
+  <h1>Excluir avaliação</h1>
+  <p>Tem certeza de que deseja excluir sua avaliação de “{{ game_name }}”?</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="delete">
+    <button type="submit">Confirmar exclusão</button>
+  </form>
+  <p><a href="{{ url_for('reviews.list_reviews') }}">Cancelar</a></p>
+{% endblock %}

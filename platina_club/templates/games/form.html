@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing %}Editar jogo{% else %}Cadastrar jogo{% endif %} | FORJA{% endblock %}
+
+{% block content %}
+  <h1>{% if editing %}Editar jogo{% else %}Cadastrar jogo{% endif %}</h1>
+  {% for error in errors %}
+    <p role="alert" class="flash error">{{ error }}</p>
+  {% endfor %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="name">Nome</label>
+    <input id="name" name="name" value="{{ game.name }}" required>
+    <label for="platform">Plataforma</label>
+    <input id="platform" name="platform" value="{{ game.platform }}" required>
+    <label for="developer">Desenvolvedora</label>
+    <input id="developer" name="developer" value="{{ game.developer }}" required>
+    <label for="release_year">Ano de lançamento</label>
+    <input id="release_year" name="release_year" type="number" min="1" step="1" value="{{ game.release_year }}" required>
+    <button type="submit">{% if editing %}Salvar alterações{% else %}Cadastrar jogo{% endif %}</button>
+  </form>
+  <p><a href="{{ url_for('library.list_games') }}">Cancelar</a></p>
+{% endblock %}
